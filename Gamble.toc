@@ -1,0 +1,7 @@
+## Interface: 50500
+## Title: Gamble MoP
+## Author: Dalvae
+## Version: 1.0
+## Notes: A gambling addon for Mists of Pandaria.
+
+embed.xml
