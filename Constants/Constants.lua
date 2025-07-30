@@ -65,21 +65,6 @@ constants.MEDIA = {
 }
 
 constants.FONT_OBJECTS = {
-    NORMAL = constants.ADDON_NAME .. 'Normal',
-    HEADING = constants.ADDON_NAME .. 'Heading'
+    NORMAL = GameFontNormal,
+    HEADING = GameFontNormalLarge
 }
-
-do
-    local font = CreateFont(constants.FONT_OBJECTS.NORMAL)
-    font:SetFont(constants.MEDIA.FONTS.DEFAULT, 12, "OUTLINE")
-    font:SetJustifyH("LEFT")
-    font:SetJustifyV("MIDDLE")
-    font:SetTextColor(constants.COLORS.WHITE:GetRGBA())
-end
-do
-    local font = CreateFont(constants.FONT_OBJECTS.HEADING)
-    font:SetFont(constants.MEDIA.FONTS.DEFAULT, 16, "OUTLINE")
-    font:SetJustifyH("LEFT")
-    font:SetJustifyV("MIDDLE")
-    font:SetTextColor(constants.COLORS.WHITE:GetRGBA())
-end

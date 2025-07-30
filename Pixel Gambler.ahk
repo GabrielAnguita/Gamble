@@ -1,4 +1,4 @@
-﻿; This script requires F3 to work
+; This script requires F3 to work
 ; Get the ID of the World of Warcraft window
 wowid1 := WinGetID("World of Warcraft")
 
@@ -85,42 +85,39 @@ CheckColorAndPerformAction() {
     isActionInProgress := true
 
     try {
-        ; Adjust coordinates based on current resolution
-        adjColor := AdjustCoordinates(ColorX, ColorY)
-        adjClick := AdjustCoordinates(ClickX, ClickY)
-        adjDenyTradeButton := AdjustCoordinates(DenyTradeButtonX, DenyTradeButtonY)
-        adjTradeButton := AdjustCoordinates(TradeButtonX, TradeButtonY)
-        adjActive := AdjustCoordinates(ActiveCordsX, ActiveCordsY)
-        adjTradeWindow := AdjustCoordinates(TradeWindowColorX, TradeWindowColorY)
+        ; Only check for colors if the 3-second global cooldown has passed
+        if (A_TickCount - lastActionTime > 3000) {
+            ; Adjust coordinates based on current resolution
+            adjColor := AdjustCoordinates(ColorX, ColorY)
+            adjClick := AdjustCoordinates(ClickX, ClickY)
+            adjDenyTradeButton := AdjustCoordinates(DenyTradeButtonX, DenyTradeButtonY)
+            adjTradeButton := AdjustCoordinates(TradeButtonX, TradeButtonY)
+            adjActive := AdjustCoordinates(ActiveCordsX, ActiveCordsY)
+            adjTradeWindow := AdjustCoordinates(TradeWindowColorX, TradeWindowColorY)
 
-        ; Check for warning color accept Warning after trade accept (highest priority)
-        ActualColor := PixelGetColor(adjColor.x, adjColor.y, "RGB")
-
-        currentTime := A_TickCount
-        if (currentTime - lastActionTime < 3000) {
-            return
-        }
-        if IsColorSimilar(ActualColor, ColorWarning, 15) {
-            PerformAction(adjClick.x, adjClick.y, "AcceptWarning")
-        }
-        ; Check for red color Deny Trades (second priority)
-        else {
-            DenyTradeColor := PixelGetColor(adjTradeWindow.x, adjTradeWindow.y, "RGB")
-            if IsColorSimilar(DenyTradeColor, NoTradeWindowColor, 20) {
-                PerformAction(adjDenyTradeButton.x, adjDenyTradeButton.y, "DenyTrade")
+            ; Check for warning color accept Warning after trade accept (highest priority)
+            ActualColor := PixelGetColor(adjColor.x, adjColor.y, "RGB")
+            if IsColorSimilar(ActualColor, ColorWarning, 15) {
+                PerformAction(adjClick.x, adjClick.y, "AcceptWarning")
             }
-            ; Check for green color Accept trades(third priority)
+            ; Check for red color Deny Trades (second priority)
             else {
-                TradeWindowActualColor := PixelGetColor(adjTradeWindow.x, adjTradeWindow.y, "RGB")
-                if IsColorSimilar(TradeWindowActualColor, TradeWindowColor, 20) {
-                    PerformAction(adjTradeButton.x, adjTradeButton.y, "AcceptTrade")
+                DenyTradeColor := PixelGetColor(adjTradeWindow.x, adjTradeWindow.y, "RGB")
+                if IsColorSimilar(DenyTradeColor, NoTradeWindowColor, 20) {
+                    PerformAction(adjDenyTradeButton.x, adjDenyTradeButton.y, "DenyTrade")
                 }
-                ; Check for Active Gamble purple color (fourth priority) to Roll the dice
+                ; Check for green color Accept trades(third priority)
                 else {
-                    ActiveGambleColor := PixelGetColor(adjActive.x, adjActive.y, "RGB")
-                    if IsColorSimilar(ActiveGambleColor, ColorActiveGamble, 20) {
-                        PerformAction(0, 0, "RollDice")  ; Coordinates are not used for RollDice anymore
-                        lastRollDiceTime := currentTime
+                    TradeWindowActualColor := PixelGetColor(adjTradeWindow.x, adjTradeWindow.y, "RGB")
+                    if IsColorSimilar(TradeWindowActualColor, TradeWindowColor, 20) {
+                        PerformAction(adjTradeButton.x, adjTradeButton.y, "AcceptTrade")
+                    }
+                    ; Check for Active Gamble purple color (fourth priority) to Roll the dice
+                    else {
+                        ActiveGambleColor := PixelGetColor(adjActive.x, adjActive.y, "RGB")
+                        if IsColorSimilar(ActiveGambleColor, ColorActiveGamble, 20) {
+                            PerformAction(0, 0, "RollDice")  ; Coordinates are not used for RollDice anymore
+                        }
                     }
                 }
             }

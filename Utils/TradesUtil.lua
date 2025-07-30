@@ -47,6 +47,19 @@ local function initializeTrade(unitGUID, unitName, pendingPayout)
     }
 end
 
+local function getTradeMoneyAmount(isPlayer)
+    if isPlayer then
+        if GetPlayerTradeMoney then
+            return tonumber(GetPlayerTradeMoney()) or 0
+        end
+    else
+        if GetTargetTradeMoney then
+            return tonumber(GetTargetTradeMoney()) or 0
+        end
+    end
+    return 0
+end
+
 local function updatePendingPayout(playerMoney, tradeAccepted)
     if tempTrade.pendingPayout and playerMoney > 0 and tradeAccepted then
         local remainingPayout = math.max(0, tempTrade.pendingPayout - playerMoney)
@@ -96,22 +109,12 @@ local function newTrade()
     pendingPayout = pendingPayout and pendingPayout > 0 and pendingPayout or nil
     Private.UI:UpdatePendingPayoutText(pendingPayout, unitGUID)
 
-
     if pendingPayout then
-        C_Timer.NewTicker(.1, function(self)
-            if TradeFrame then
-                local gold = math.floor(pendingPayout / 10000)
-                local silver = math.floor((pendingPayout % 10000) / 100)
-                local copper = pendingPayout % 100
-
-                TradePlayerInputMoneyFrameGold:SetText(gold)
-                TradePlayerInputMoneyFrameSilver:SetText(silver)
-                TradePlayerInputMoneyFrameCopper:SetText(copper)
-
-                Private.UI:ShowGreenSquare()
-                self:Cancel()
-            end
-        end)
+        -- SOLUCIÓN FINAL: Notificar al usuario para que pague manualmente.
+        local payoutText = C_CurrencyInfo.GetCoinText(pendingPayout, " ")
+        print("|cffFFFF00Gamble Addon: Payout Due|r")
+        print("Please manually trade |cffFFFF00" .. payoutText .. "|r to " .. (unitName or "player"))
+        Private.UI:ShowGreenSquare() -- Indicador visual de que hay un pago pendiente.
     else
         Private.UI:HideSquares()
     end
@@ -131,8 +134,8 @@ local function newTrade()
 end
 
 local function updateTrade(_, event, playerAccepted, targetAccepted)
-    local bet = tonumber(GetTargetTradeMoney()) or 0
-    local playerMoney = tonumber(GetPlayerTradeMoney()) or 0
+    local bet = getTradeMoneyAmount(false)  -- dinero del objetivo
+    local playerMoney = getTradeMoneyAmount(true)  -- dinero del jugador
     tempTrade.payout = playerMoney
 
     local maxBet = addon:GetDatabaseValue("maxBet") * MAX_BET_MULTIPLIER
@@ -140,10 +143,7 @@ local function updateTrade(_, event, playerAccepted, targetAccepted)
     local tradeAccepted = (event == "TRADE_ACCEPT_UPDATE" and playerAccepted == 1 and targetAccepted == 1)
     local playerAcceptedTrade = (event == "TRADE_ACCEPT_UPDATE" and targetAccepted == 1)
 
-    -- Private.UI:HideSquares()
-
     updatePendingPayout(playerMoney, tradeAccepted)
-
     tempTrade.bet = validateBet(bet, maxBet, minBet, playerAcceptedTrade)
 
     if tempTrade.bet > 0 and tradeAccepted then

@@ -1,0 +1,35 @@
+-- Ejemplo de cómo modificar tu addon de WoW (en un archivo .lua como MessageUtil.lua o StatsUtil.lua)
+
+-- 1. Añade esta función a tu archivo .lua
+-- Esta función se encarga de abrir un archivo y escribir el texto en él.
+function Gamble_GuardarCantidadEnArchivo(cantidad)
+  -- IMPORTANTE: La ruta debe usar DOBLES barras invertidas (\\).
+  -- Elige una ruta simple. C:\temp es una buena opción porque no requiere permisos especiales.
+  local file, err = io.open("C:\\temp\\gamble_amount.txt", "w")
+
+  if file then
+    -- Convierte la cantidad a texto y la escribe en el archivo.
+    file:write(tostring(cantidad))
+    file:close()
+  else
+    -- Opcional: imprime un error en el chat del juego si no se puede crear el archivo.
+    print("|cffFF0000Gamble Addon: Error al escribir en el archivo:|r " .. tostring(err))
+  end
+end
+
+-- 2. Llama a esta función cuando la cantidad a deber cambie.
+-- Busca en tu código la parte que actualiza el marco o el texto con la cantidad
+-- y añade la llamada a la nueva función justo después.
+
+-- Por ejemplo, si tu código es algo así:
+-- local cantidadDeuda = 150
+-- MiAddon_MarcoDeuda:SetText(cantidadDeuda) -- Tu función existente que actualiza el texto en pantalla.
+
+-- Simplemente añade la nueva línea debajo:
+-- Gamble_GuardarCantidadEnArchivo(cantidadDeuda) -- ¡Añade esta línea!
+
+
+-- EJEMPLO COMPLETO:
+local cantidadDeuda = 150
+-- FrameDeuda.text = cantidadDeuda -- (Imagina que esto actualiza tu UI)
+Gamble_GuardarCantidadEnArchivo(cantidadDeuda) -- Esto guardará '150' en C:\temp\gamble_amount.txt
