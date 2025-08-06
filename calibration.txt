@@ -1,0 +1,14 @@
+ClickX=870
+ClickY=264
+TradeWindowColorX=480
+TradeWindowColorY=428
+ActiveCordsX=1404
+ActiveCordsY=428
+TradeButtonX=284
+TradeButtonY=690
+DenyTradeButtonX=410
+DenyTradeButtonY=690
+PayoutPixelX=478
+PayoutPixelY=460
+GoldInputX=68
+GoldInputY=234

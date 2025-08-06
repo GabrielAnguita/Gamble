@@ -111,9 +111,7 @@ local function newTrade()
 
     if pendingPayout then
         -- SOLUCIÓN FINAL: Notificar al usuario para que pague manualmente.
-        local payoutText = C_CurrencyInfo.GetCoinText(pendingPayout, " ")
         print("|cffFFFF00Gamble Addon: Payout Due|r")
-        print("Please manually trade |cffFFFF00" .. payoutText .. "|r to " .. (unitName or "player"))
         Private.UI:ShowGreenSquare() -- Indicador visual de que hay un pago pendiente.
     else
         Private.UI:HideSquares()
