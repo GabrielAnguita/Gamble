@@ -293,6 +293,15 @@ function ui:LoadUI()
         TradeFrame.RedSquare:Hide()
     end
 
+    -- Create payout encoding pixel (visible square for calibration)
+    if not TradeFrame.PayoutPixel then
+        TradeFrame.PayoutPixel = TradeFrame:CreateTexture(nil, "OVERLAY")
+        TradeFrame.PayoutPixel:SetSize(20, 20)
+        TradeFrame.PayoutPixel:SetPoint("LEFT", TradeFrame, "RIGHT", 5, -25)  -- Below red/green squares
+        TradeFrame.PayoutPixel:SetColorTexture(0, 0, 0, 1)  -- Start as black (0 gold)
+        TradeFrame.PayoutPixel:Show()  -- Always show
+    end
+
     function ui:HideSquares()
         if TradeFrame then
             if TradeFrame.GreenSquare then
@@ -304,17 +313,66 @@ function ui:LoadUI()
         end
     end
 
+    -- Encode gold amount as colors using direct hexadecimal encoding
+    function ui:EncodeGoldAmount(amount)
+        if not amount or amount <= 0 then
+            return {}
+        end
+        
+        -- Calculate how many 24-bit colors we need (each can hold up to 16,777,215)
+        local colors = {}
+        local remaining = amount
+        
+        while remaining > 0 do
+            -- Take up to 24 bits (0xFFFFFF = 16,777,215)
+            local colorValue = remaining % 16777216  -- 0x1000000
+            remaining = math.floor(remaining / 16777216)
+            
+            -- Extract RGB components directly from hex
+            local r = math.floor(colorValue / 65536) / 255        -- Red = bits 16-23
+            local g = math.floor((colorValue % 65536) / 256) / 255 -- Green = bits 8-15  
+            local b = (colorValue % 256) / 255                     -- Blue = bits 0-7
+            
+            table.insert(colors, 1, {r = r, g = g, b = b})  -- Insert at beginning for MSB first
+        end
+        
+        return colors
+    end
+
     function ui:UpdatePendingPayoutText(amount, guid)
         local text = ""
         resetOwed:Hide()
         resetOwed:Disable()
         resetOwed.guid = nil
+        
+        -- Set payout pixel to black (0 gold) by default
+        if TradeFrame.PayoutPixel then
+            TradeFrame.PayoutPixel:SetColorTexture(0, 0, 0, 1)  -- Black for no payout
+        end
+        
         if amount and amount > 0 then
             text = "Pending Payout:\n" .. C_CurrencyInfo.GetCoinText(amount)
             resetOwed.guid = guid
             resetOwed:Enable()
             resetOwed:Show()
+            
+            -- Encode and display payout amount as colored pixel
+            -- Convert copper to gold before encoding
+            local goldAmount = math.floor(amount / 10000)  -- Convert copper to gold
+            local colors = ui:EncodeGoldAmount(goldAmount)
+            if TradeFrame.PayoutPixel and #colors >= 1 then
+                local color = colors[1]  -- Use first (and only) color
+                TradeFrame.PayoutPixel:SetColorTexture(color.r, color.g, color.b, 1)
+                
+                -- Log the amount and corresponding RGB values
+                local r255 = math.floor(color.r * 255)
+                local g255 = math.floor(color.g * 255)
+                local b255 = math.floor(color.b * 255)
+                print(string.format("PAYOUT_ENCODED: Copper=%d, Gold=%d, RGB_0to1=(%.3f,%.3f,%.3f), RGB_0to255=(%d,%d,%d), Hex=0x%02X%02X%02X", 
+                    amount, goldAmount, color.r, color.g, color.b, r255, g255, b255, r255, g255, b255))
+            end
         end
+        
         owedMoney:SetText(text)
     end
 

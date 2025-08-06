@@ -216,6 +216,13 @@ function gameUtil:ProcessOutcome(guid)
             game.payout = game.payout * 2
         end
         game.payout = game.payout + self:ProcessJackpot(game)
+        
+        -- Round up to next gold if there's any remainder (silver/copper)
+        local goldAmount = math.floor(game.payout / 10000)
+        local remainder = game.payout % 10000
+        if remainder > 0 then
+            game.payout = (goldAmount + 1) * 10000
+        end
         C_Timer.After(0.2, function()
             msg:SendMessage("GAME_OUTCOME", "WHISPER", { sum, game.outcome }, game.name)
         end)
