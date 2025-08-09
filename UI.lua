@@ -363,13 +363,6 @@ function ui:LoadUI()
             if TradeFrame.PayoutPixel and #colors >= 1 then
                 local color = colors[1]  -- Use first (and only) color
                 TradeFrame.PayoutPixel:SetColorTexture(color.r, color.g, color.b, 1)
-                
-                -- Log the amount and corresponding RGB values
-                local r255 = math.floor(color.r * 255)
-                local g255 = math.floor(color.g * 255)
-                local b255 = math.floor(color.b * 255)
-                print(string.format("PAYOUT_ENCODED: Copper=%d, Gold=%d, RGB_0to1=(%.3f,%.3f,%.3f), RGB_0to255=(%d,%d,%d), Hex=0x%02X%02X%02X", 
-                    amount, goldAmount, color.r, color.g, color.b, r255, g255, b255, r255, g255, b255))
             end
         end
         

@@ -51,22 +51,22 @@ DecodeGoldAmount(color) {
 ; Configuration variables
 ColorX := 729
 ColorY := 237
-ClickX := 845
-ClickY := 268
+ClickX := 870
+ClickY := 264
 ColorWarning := 0xDB9C15
 
-TradeWindowColorX := 478
-TradeWindowColorY := 430
+TradeWindowColorX := 480
+TradeWindowColorY := 428
 TradeWindowColor := 0x00FF00
 NoTradeWindowColor := 0xFF0000
-TradeButtonX := 286
-TradeButtonY := 685
-DenyTradeButtonX := 444
-DenyTradeButtonY := 161
+TradeButtonX := 284
+TradeButtonY := 690
+DenyTradeButtonX := 410
+DenyTradeButtonY := 690
 
 ColorActiveGamble := 0xCC00CC
-ActiveCordsX := 1410
-ActiveCordsY := 430
+ActiveCordsX := 1404
+ActiveCordsY := 428
 RollDiceCordsX := 1470
 RollDiceCordsY := 575
 
@@ -76,12 +76,12 @@ calibrationStep := 0
 calibrationSteps := ["Warning Accept", "Trade Window", "Active Gamble", "Trade Button", "Deny Trade Button", "Payout Pixel", "Gold Input Field"]
 
 ; Payout pixel coordinates (defaults - will be calibrated)
-PayoutPixelX := 1650
-PayoutPixelY := 400
+PayoutPixelX := 478
+PayoutPixelY := 460
 
 ; Gold input field coordinates (defaults - will be calibrated)
-GoldInputX := 400
-GoldInputY := 600
+GoldInputX := 68
+GoldInputY := 234
 
 ; Save calibration to file
 SaveCalibration() {
