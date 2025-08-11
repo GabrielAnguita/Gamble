@@ -14,6 +14,10 @@ global isActionInProgress := false
 global lastActionTime := 0
 global lastRollDiceTime := 0
 global rollDiceCooldown := 5000
+global lastAntiIdleTime := 0
+global antiIdleMinInterval := 180000  ; 3 minutes in milliseconds
+global antiIdleMaxInterval := 294000  ; 4.9 minutes in milliseconds
+global nextAntiIdleInterval := 0
 
 ; Show startup message
 ShowTooltip("Press F3 to activate the script", 5000)
@@ -71,95 +75,15 @@ RollDiceCordsX := 1470
 RollDiceCordsY := 575
 
 
-; Calibration cycle variables
-calibrationStep := 0
-calibrationSteps := ["Warning Accept", "Trade Window", "Active Gamble", "Trade Button", "Deny Trade Button", "Payout Pixel", "Gold Input Field"]
 
-; Payout pixel coordinates (defaults - will be calibrated)
+; Payout pixel coordinates (defaults)
 PayoutPixelX := 478
 PayoutPixelY := 460
 
-; Gold input field coordinates (defaults - will be calibrated)
+; Gold input field coordinates (defaults)
 GoldInputX := 68
 GoldInputY := 234
 
-; Save calibration to file
-SaveCalibration() {
-    calibFile := A_ScriptDir . "\calibration.txt"
-    content := "ClickX=" . ClickX . "`n"
-    content .= "ClickY=" . ClickY . "`n"
-    content .= "TradeWindowColorX=" . TradeWindowColorX . "`n"
-    content .= "TradeWindowColorY=" . TradeWindowColorY . "`n"
-    content .= "ActiveCordsX=" . ActiveCordsX . "`n"
-    content .= "ActiveCordsY=" . ActiveCordsY . "`n"
-    content .= "TradeButtonX=" . TradeButtonX . "`n"
-    content .= "TradeButtonY=" . TradeButtonY . "`n"
-    content .= "DenyTradeButtonX=" . DenyTradeButtonX . "`n"
-    content .= "DenyTradeButtonY=" . DenyTradeButtonY . "`n"
-    content .= "PayoutPixelX=" . PayoutPixelX . "`n"
-    content .= "PayoutPixelY=" . PayoutPixelY . "`n"
-    content .= "GoldInputX=" . GoldInputX . "`n"
-    content .= "GoldInputY=" . GoldInputY
-    
-    if FileExist(calibFile) {
-        FileDelete(calibFile)
-    }
-    FileAppend(content, calibFile)
-    LogState("Calibration saved to " . calibFile)
-}
-
-; Load calibration from file
-LoadCalibration() {
-    global ClickX, ClickY, TradeWindowColorX, TradeWindowColorY
-    global ActiveCordsX, ActiveCordsY, TradeButtonX, TradeButtonY
-    global DenyTradeButtonX, DenyTradeButtonY, PayoutPixelX, PayoutPixelY
-    global GoldInputX, GoldInputY
-    
-    calibFile := A_ScriptDir . "\calibration.txt"
-    
-    if FileExist(calibFile) {
-        try {
-            content := FileRead(calibFile)
-            lines := StrSplit(content, "`n")
-            
-            for line in lines {
-                if (line != "") {
-                    parts := StrSplit(line, "=")
-                    if (parts.Length == 2) {
-                        varName := parts[1]
-                        value := Integer(parts[2])
-                        
-                        switch varName {
-                            case "ClickX": ClickX := value
-                            case "ClickY": ClickY := value
-                            case "TradeWindowColorX": TradeWindowColorX := value
-                            case "TradeWindowColorY": TradeWindowColorY := value
-                            case "ActiveCordsX": ActiveCordsX := value
-                            case "ActiveCordsY": ActiveCordsY := value
-                            case "TradeButtonX": TradeButtonX := value
-                            case "TradeButtonY": TradeButtonY := value
-                            case "DenyTradeButtonX": DenyTradeButtonX := value
-                            case "DenyTradeButtonY": DenyTradeButtonY := value
-                            case "PayoutPixelX": PayoutPixelX := value
-                            case "PayoutPixelY": PayoutPixelY := value
-                            case "GoldInputX": GoldInputX := value
-                            case "GoldInputY": GoldInputY := value
-                        }
-                    }
-                }
-            }
-            LogState("Calibration loaded from " . calibFile)
-        }
-        catch {
-            LogState("Error loading calibration file")
-        }
-    } else {
-        LogState("No calibration file found, using defaults")
-    }
-}
-
-; Load calibration on startup
-LoadCalibration()
 
 F3::
 {
@@ -175,81 +99,6 @@ F3::
     }
 }
 
-F4::  ; Calibration cycle
-{
-    global calibrationStep, calibrationSteps
-    global ClickX, ClickY, TradeWindowColorX, TradeWindowColorY
-    global ActiveCordsX, ActiveCordsY, TradeButtonX, TradeButtonY
-    global DenyTradeButtonX, DenyTradeButtonY, PayoutPixelX, PayoutPixelY, GoldInputX, GoldInputY
-    
-    if (calibrationStep == 0) {
-        ; Start calibration cycle
-        calibrationStep := 1
-        ShowTooltip("Calibration started. Hover over " . calibrationSteps[1] . " and press F4 again", 3000)
-        LogState("Calibration cycle started - Step 1: " . calibrationSteps[1])
-    }
-    else {
-        ; Calibrate current step  
-        MouseGetPos(&mouseX, &mouseY)
-        currentColor := PixelGetColor(mouseX, mouseY, "RGB")
-        
-        if (calibrationStep == 1) {  ; Warning Accept
-            ClickX := mouseX
-            ClickY := mouseY
-            LogState("Calibrated " . calibrationSteps[1] . ": (" . mouseX . "," . mouseY . ") - Color: 0x" . Format("{:06X}", currentColor))
-        }
-        else if (calibrationStep == 2) {  ; Trade Window
-            TradeWindowColorX := mouseX
-            TradeWindowColorY := mouseY
-            LogState("Calibrated " . calibrationSteps[2] . ": (" . mouseX . "," . mouseY . ") - Color: 0x" . Format("{:06X}", currentColor))
-        }
-        else if (calibrationStep == 3) {  ; Active Gamble
-            ActiveCordsX := mouseX
-            ActiveCordsY := mouseY
-            LogState("Calibrated " . calibrationSteps[3] . ": (" . mouseX . "," . mouseY . ") - Color: 0x" . Format("{:06X}", currentColor))
-            if IsColorSimilar(currentColor, ColorActiveGamble, 20) {
-                LogState("*** PURPLE COLOR DETECTED! ***")
-            }
-        }
-        else if (calibrationStep == 4) {  ; Trade Button
-            TradeButtonX := mouseX
-            TradeButtonY := mouseY
-            LogState("Calibrated " . calibrationSteps[4] . ": (" . mouseX . "," . mouseY . ")")
-        }
-        else if (calibrationStep == 5) {  ; Deny Trade Button
-            DenyTradeButtonX := mouseX
-            DenyTradeButtonY := mouseY
-            LogState("Calibrated " . calibrationSteps[5] . ": (" . mouseX . "," . mouseY . ")")
-        }
-        else if (calibrationStep == 6) {  ; Payout Pixel
-            PayoutPixelX := mouseX
-            PayoutPixelY := mouseY
-            LogState("Calibrated " . calibrationSteps[6] . ": (" . mouseX . "," . mouseY . ") - Color: 0x" . Format("{:06X}", currentColor))
-            
-            ; Test decoding the color immediately
-            testAmount := DecodeGoldAmount(currentColor)
-            LogState("*** PAYOUT PIXEL TEST: Decoded=" . testAmount . " gold from color 0x" . Format("{:06X}", currentColor) . " ***")
-        }
-        else if (calibrationStep == 7) {  ; Gold Input Field
-            GoldInputX := mouseX
-            GoldInputY := mouseY
-            LogState("Calibrated " . calibrationSteps[7] . ": (" . mouseX . "," . mouseY . ")")
-        }
-        
-        calibrationStep++
-        
-        if (calibrationStep <= calibrationSteps.Length) {
-            ShowTooltip(calibrationSteps[calibrationStep-1] . " calibrated. Hover over " . calibrationSteps[calibrationStep] . " and press F4 again", 3000)
-            LogState("Next step: " . calibrationSteps[calibrationStep])
-        }
-        else {
-            calibrationStep := 0
-            SaveCalibration()
-            ShowTooltip("Calibration complete and saved!", 3000)
-            LogState("Calibration cycle completed and saved")
-        }
-    }
-}
 
 CheckColorAndPerformAction() {
     global isActive, isActionInProgress, wowid1, lastActionTime, lastRollDiceTime, rollDiceCooldown
@@ -257,13 +106,15 @@ CheckColorAndPerformAction() {
     if (!isActive || isActionInProgress || !WinActive("ahk_id " wowid1))
         return
 
+    ; Check for anti-idle movement only during true idle periods
+    PerformAntiIdleMovement()
+
     isActionInProgress := true
 
     try {
         ; Only check for colors if the 3-second global cooldown has passed
         if (A_TickCount - lastActionTime > 3000) {
-            ; Adjust coordinates based on current resolution
-            ; Use direct calibrated coordinates (no scaling)
+            ; Use default coordinates
             adjColor := {x: ColorX, y: ColorY}
             adjClick := {x: ClickX, y: ClickY}
             adjDenyTradeButton := {x: DenyTradeButtonX, y: DenyTradeButtonY}
@@ -291,7 +142,7 @@ CheckColorAndPerformAction() {
                     TradeWindowActualColor := PixelGetColor(adjTradeWindow.x, adjTradeWindow.y, "RGB")
                     if IsColorSimilar(TradeWindowActualColor, TradeWindowColor, 20) {
                         ; Check if this is a payout situation (green square + encoded amount)
-                        LogState("Reading payout pixel at calibrated coords: (" . PayoutPixelX . "," . PayoutPixelY . ")")
+                        LogState("Reading payout pixel at coords: (" . PayoutPixelX . "," . PayoutPixelY . ")")
                         PayoutPixelColor := PixelGetColor(adjPayoutPixel.x, adjPayoutPixel.y, "RGB")
                         payoutAmount := DecodeGoldAmount(PayoutPixelColor)
                         
@@ -400,4 +251,50 @@ SmoothMouseMove(targetX, targetY) {
 
     MouseMove(targetX, targetY, 0)
 }
+
+; Anti-idle movement function
+PerformAntiIdleMovement() {
+    global isActive, lastAntiIdleTime, antiIdleMinInterval, antiIdleMaxInterval, nextAntiIdleInterval
+    
+    if (!isActive)
+        return
+    
+    ; Calculate next random interval if not set
+    if (nextAntiIdleInterval == 0) {
+        nextAntiIdleInterval := Random(antiIdleMinInterval, antiIdleMaxInterval)
+        lastAntiIdleTime := A_TickCount
+        LogState("Anti-idle: Next action in " . Round(nextAntiIdleInterval/1000) . " seconds")
+        return
+    }
+    
+    ; Check if it's time for anti-idle action
+    if (A_TickCount - lastAntiIdleTime >= nextAntiIdleInterval) {
+        LogState("Anti-idle: Performing jump + dance")
+        ShowTooltip("Anti-idle: Jump + Dance", 1000)
+        
+        ; Jump
+        Send("{Space}")
+        Sleep(Random(500, 1000))
+        
+        ; Open chat and type /dance slowly with random intervals
+        Send("{Enter}")
+        Sleep(Random(200, 400))
+        
+        ; Type /dance character by character with random delays
+        danceChars := ["/", "d", "a", "n", "c", "e"]
+        for char in danceChars {
+            Send(char)
+            Sleep(Random(100, 300))
+        }
+        
+        Sleep(Random(200, 400))
+        Send("{Enter}")
+        
+        ; Reset timer with new random interval
+        lastAntiIdleTime := A_TickCount
+        nextAntiIdleInterval := Random(antiIdleMinInterval, antiIdleMaxInterval)
+        LogState("Anti-idle: Next action in " . Round(nextAntiIdleInterval/1000) . " seconds")
+    }
+}
+
 #HotIf
