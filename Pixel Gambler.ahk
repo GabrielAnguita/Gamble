@@ -249,45 +249,55 @@ PerformAction(x, y, action := "") {
 SmoothMouseMove(targetX, targetY) {
     MouseGetPos(&startX, &startY)
 
-    distance := Sqrt((targetX - startX) ** 2 + (targetY - startY) ** 2)
+    dx := targetX - startX
+    dy := targetY - startY
+    distance := Sqrt(dx*dx + dy*dy)
 
+    ; Short moves: just go
     if (distance < 20) {
-        ; Add small random offset even for short distances
-        finalX := targetX + Random(-3, 3)
-        finalY := targetY + Random(-3, 3)
-        MouseMove(finalX, finalY, Random(1, 3))
+        MouseMove(Round(targetX), Round(targetY), 0)
         return
     }
 
-    ; Variable step count for different movement patterns
-    steps := Max(Floor(distance / Random(18, 25)), 4)
+    ; Steps scale with distance for smoothness
+    steps := Max(Floor(distance / 12), 10)
 
-    ; Create a simple curved path with one control point
-    controlX := startX + (targetX - startX) / 2 + Random(-30, 30)
-    controlY := startY + (targetY - startY) / 2 + Random(-30, 30)
+    ; Midpoint along the straight line
+    midX := startX + dx / 2
+    midY := startY + dy / 2
+
+    ; (dy, -dx) is perpendicular to (dx, dy)
+    invLen := 1.0 / distance
+    perpX :=  dy * invLen
+    perpY := -dx * invLen
+
+    ; Exaggeration of the arc (tweak these)
+    ; ~18% of distance, clamped; small randomness to avoid exact repeats
+    arc := Min(140, Max(12, distance * 0.18)) * Random(0.92, 1.08)
+
+    ; Control point = midpoint pushed perpendicular by 'arc'
+    controlX := midX + perpX * arc
+    controlY := midY + perpY * arc
 
     loop steps {
         if (!isActive)
             return
         t := A_Index / steps
-        
-        ; Simple quadratic bezier curve with random variations
-        newX := Round((1 - t) ** 2 * startX + 2 * (1 - t) * t * controlX + t ** 2 * targetX)
-        newY := Round((1 - t) ** 2 * startY + 2 * (1 - t) * t * controlY + t ** 2 * targetY)
-        
-        ; Add small random variations to each point
-        newX += Random(-2, 2)
-        newY += Random(-2, 2)
-        
-        MouseMove(newX, newY, Random(1, 2))
+
+        ; Smooth ease-in-out to avoid "robotic" constant velocity
+        ; e = 3t^2 - 2t^3
+        e  := 3 * (t*t) - 2 * (t*t*t)
+        om := 1 - e
+
+        newX := Round(om*om*startX + 2*om*e*controlX + e*e*targetX)
+        newY := Round(om*om*startY + 2*om*e*controlY + e*e*targetY)
+
+        MouseMove(newX, newY, 0)
         if (A_Index < steps)
-            Sleep(Random(2, 5))  ; Randomized timing between movement steps
+            Sleep(2)
     }
 
-    ; Final position with small random offset
-    finalX := targetX + Random(-4, 4)
-    finalY := targetY + Random(-4, 4)
-    MouseMove(finalX, finalY, 1)
+    MouseMove(Round(targetX), Round(targetY), 0)
 }
 
 ; Anti-idle movement function
