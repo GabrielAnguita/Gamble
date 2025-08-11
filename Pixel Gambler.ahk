@@ -1,10 +1,23 @@
 ; This script requires F3 to work
-; Get the ID of the World of Warcraft window
-wowid1 := WinGetID("World of Warcraft")
-if (!wowid1) {
-    LogState("World of Warcraft window not found")
-    wowid1 := 0
+; Function to find WoW window
+FindWoWWindow() {
+    while (true) {
+        try {
+            newWowId := WinGetID("World of Warcraft")
+            if (newWowId) {
+                LogState("World of Warcraft window found: ID " . newWowId)
+                return newWowId
+            }
+        } catch {
+            ; WinGetID throws error when window not found, continue trying
+        }
+        LogState("World of Warcraft window not found, retrying in 1 second...")
+        Sleep(1000)
+    }
 }
+
+; Get the ID of the World of Warcraft window
+wowid1 := FindWoWWindow()
 
 #HotIf WinActive("ahk_id " . wowid1)
 
@@ -31,6 +44,14 @@ ShowTooltip(message, duration := 2000) {
 LogState(message) {
     timeStr := FormatTime(A_Now, "yyyy-MM-dd HH:mm:ss")
     OutputDebug("[" . timeStr . "] " . message)
+}
+
+; Function to type text slowly like a human
+SlowType(text) {
+    for char in StrSplit(text, "") {
+        Send(char)
+        Sleep(Random(100, 300))
+    }
 }
 
 
@@ -155,15 +176,17 @@ CheckColorAndPerformAction() {
                             PerformAction(adjGoldInput.x, adjGoldInput.y, "ClickGoldInput")
                             Sleep(500)  ; Wait for field to focus
                             Send("^a")  ; Select all
-                            Sleep(200)
-                            Send(String(Integer(payoutAmount)))
+                            Sleep(Random(300, 500))
+                            SlowType(String(Integer(payoutAmount)))
                             Sleep(500)
                             ; Then accept the trade
                             PerformAction(adjTradeButton.x, adjTradeButton.y, "AcceptTrade")
+                            Sleep(Random(1500, 2500))  ; Wait longer for trade warning dialog
  			                PerformAction(adjClick.x, adjClick.y, "AcceptWarning")
                         } else {
                             LogState("State: ACCEPT_TRADE - Color: 0x" . Format("{:06X}", TradeWindowActualColor) . " Expected: 0x" . Format("{:06X}", TradeWindowColor))
                             PerformAction(adjTradeButton.x, adjTradeButton.y, "AcceptTrade")
+                            Sleep(Random(1500, 2500))  ; Wait longer for trade warning dialog
  			                PerformAction(adjClick.x, adjClick.y, "AcceptWarning")
                         }
                     }
@@ -205,7 +228,7 @@ PerformAction(x, y, action := "") {
             lastRollDiceTime := A_TickCount
         case "AcceptWarning", "DenyTrade", "AcceptTrade":
             SmoothMouseMove(x, y)
-            Sleep(Random(300, 700))
+            Sleep(Random(400, 900))  ; More randomized timing
             if (!isActive)
                 return
             ShowTooltip(action)
@@ -213,7 +236,7 @@ PerformAction(x, y, action := "") {
             lastActionTime := A_TickCount
         default:
             SmoothMouseMove(x, y)
-            Sleep(Random(15, 35))
+            Sleep(Random(50, 150))  ; More randomized timing
             if (!isActive)
                 return
             Click()
@@ -229,27 +252,42 @@ SmoothMouseMove(targetX, targetY) {
     distance := Sqrt((targetX - startX) ** 2 + (targetY - startY) ** 2)
 
     if (distance < 20) {
-        MouseMove(targetX, targetY, 0)
+        ; Add small random offset even for short distances
+        finalX := targetX + Random(-3, 3)
+        finalY := targetY + Random(-3, 3)
+        MouseMove(finalX, finalY, Random(1, 3))
         return
     }
 
-    steps := Max(Floor(distance / 20), 3)
+    ; Variable step count for different movement patterns
+    steps := Max(Floor(distance / Random(18, 25)), 4)
 
-    controlX := startX + (targetX - startX) / 2 + Random(-10, 10)
-    controlY := startY + (targetY - startY) / 2 + Random(-10, 10)
+    ; Create a simple curved path with one control point
+    controlX := startX + (targetX - startX) / 2 + Random(-30, 30)
+    controlY := startY + (targetY - startY) / 2 + Random(-30, 30)
 
     loop steps {
         if (!isActive)
             return
         t := A_Index / steps
+        
+        ; Simple quadratic bezier curve with random variations
         newX := Round((1 - t) ** 2 * startX + 2 * (1 - t) * t * controlX + t ** 2 * targetX)
         newY := Round((1 - t) ** 2 * startY + 2 * (1 - t) * t * controlY + t ** 2 * targetY)
-        MouseMove(newX, newY, 0)
+        
+        ; Add small random variations to each point
+        newX += Random(-2, 2)
+        newY += Random(-2, 2)
+        
+        MouseMove(newX, newY, Random(1, 2))
         if (A_Index < steps)
-            Sleep(1)
+            Sleep(Random(2, 5))  ; Randomized timing between movement steps
     }
 
-    MouseMove(targetX, targetY, 0)
+    ; Final position with small random offset
+    finalX := targetX + Random(-4, 4)
+    finalY := targetY + Random(-4, 4)
+    MouseMove(finalX, finalY, 1)
 }
 
 ; Anti-idle movement function
@@ -280,12 +318,8 @@ PerformAntiIdleMovement() {
         Send("{Enter}")
         Sleep(Random(200, 400))
         
-        ; Type /dance character by character with random delays
-        danceChars := ["/", "d", "a", "n", "c", "e"]
-        for char in danceChars {
-            Send(char)
-            Sleep(Random(100, 300))
-        }
+        ; Type /dance slowly
+        SlowType("/dance")
         
         Sleep(Random(200, 400))
         Send("{Enter}")

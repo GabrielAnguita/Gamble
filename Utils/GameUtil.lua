@@ -109,7 +109,7 @@ function gameUtil:SaveGame(guid)
         addon:SetDatabaseValue("pendingPayout", pendingPayouts)
         msg:SendMessage("WON_PAYOUT", "WHISPER", { C_CurrencyInfo.GetCoinText(game.payout) }, game.name)
     elseif game.outcome == "LOSE" and addon:GetDatabaseValue("whisperLose") then
-        msg:SendMessage("GAME_OUTCOME", "WHISPER", { game.rolls[1] + game.rolls[2], game.outcome }, game.name)
+        msg:SendMessage("GAME_LOSS", "WHISPER", { game.rolls[1] + game.rolls[2] }, game.name)
     end
 
     self.activeGames[guid] = nil
@@ -224,7 +224,7 @@ function gameUtil:ProcessOutcome(guid)
             game.payout = (goldAmount + 1) * 10000
         end
         C_Timer.After(0.2, function()
-            msg:SendMessage("GAME_OUTCOME", "WHISPER", { sum, game.outcome }, game.name)
+            msg:SendMessage("GAME_WIN", "WHISPER", { sum }, game.name)
         end)
     else
         game.outcome = "LOSE"

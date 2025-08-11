@@ -13,7 +13,8 @@ local sayWorthy = {
     ["BET_ACCEPTED"] = true,
     ["CHOICE_PENDING"] = true,
     ["CHOICE_PICKED"] = true,
-    ["GAME_OUTCOME"] = true,
+    ["GAME_WIN"] = true,
+    ["GAME_LOSS"] = true,
     ["WON_PAYOUT"] = true,
     ["PENDING_PAYOUT"] = true,
     ["BUSY_WITH_GAME"] = true,
@@ -24,7 +25,7 @@ local sayWorthy = {
     ["JACKPOT_WIN"] = true,
 }
 
----@param messageType "BET_ACCEPTED"|"CHOICE_PENDING"|"CHOICE_PICKED"|"GAME_OUTCOME"|"WON_PAYOUT"|"UNDER_MIN_BET"|"OVER_MAX_BET"|"RULES"|"PERSONAL_STATS"|"NUM_ENTRY"|"NO_FORMAT"|"PENDING_PAYOUT"|"BUSY_WITH_GAME"|"LOYALTY_MIN_BET_NOT_MET"|"RULEJACKPOT"|"JACKPOT_WIN"|"JACKPOT_PROGRESS"
+---@param messageType "BET_ACCEPTED"|"CHOICE_PENDING"|"CHOICE_PICKED"|"GAME_WIN"|"GAME_LOSS"|"WON_PAYOUT"|"UNDER_MIN_BET"|"OVER_MAX_BET"|"RULES"|"PERSONAL_STATS"|"NUM_ENTRY"|"NO_FORMAT"|"PENDING_PAYOUT"|"BUSY_WITH_GAME"|"LOYALTY_MIN_BET_NOT_MET"|"RULEJACKPOT"|"JACKPOT_WIN"|"JACKPOT_PROGRESS"
 ---@param args table
 ---@param target string|?
 function messageUtil:SendMessage(messageType, channel, args, target)

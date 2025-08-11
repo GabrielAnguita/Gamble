@@ -122,8 +122,8 @@ local function newTrade()
     if tradeTimer then
         tradeTimer:Cancel()
     end
-    tradeTimer = C_Timer.NewTimer(10, function()
-        if tempTrade.bet == 0 and TradeFrame and TradeFrame:IsShown() then
+    tradeTimer = C_Timer.NewTimer(math.random(30, 35), function()
+        if TradeFrame and TradeFrame:IsShown() then
             Private.UI:ShowRedSquare()
             msg:SendMessage("NO_BET_DETECTED", "WHISPER", {}, tempTrade.name)
         end

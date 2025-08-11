@@ -24,7 +24,8 @@ constants.MESSAGE_TYPES = {
     ["BET_ACCEPTED"] = "Your Bet of %s was received! Type 'under', '7' or 'over' to pick your choice.",
     ["CHOICE_PENDING"] = "Your Choice is still missing %s! Type 'under', '7' or 'over' to pick your choice.",
     ["CHOICE_PICKED"] = "Your Choice '%s' was saved! Rolling the Dice... Good Luck!",
-    ["GAME_OUTCOME"] = "The Dice rolled %d! That's a %s for you.",
+    ["GAME_WIN"] = "The Dice rolled %d! That's a WIN for you.",
+    ["GAME_LOSS"] = "The Dice rolled %d! Better luck next time!",
     ["WON_PAYOUT"] = "You just won %s! Open trade to receive winnings!",
     ["UNDER_MIN_BET"] =
     "You're trying to bet %s which is under the minimum Bet that is currently: %s! {Cross}TRADE CANCELED{Cross}",
@@ -32,7 +33,7 @@ constants.MESSAGE_TYPES = {
     "You're about to bet %s even though the max allowed Bet is currently: %s!{Cross}TRADE CANCELED{Cross}",
     ["PENDING_PAYOUT"] = "I owe you %s. Trade me anytime and I'll give it back to you.",
     ["BUSY_WITH_GAME"] = "I'm sorry, I'm in another gamble. Can you wait a second please?",
-    ["NO_BET_DETECTED"] = "No bet detected {cross}TRADE CANCELED{cross}",
+    ["NO_BET_DETECTED"] = "trade canceled, taking too long",
     ["RULES1"] = "Welcome, %s!, Casino Rules (Guess the dice total):",
     ["RULES2"] = "Over 7 / Under 7: Win x2",
     ["RULES3"] = "Exactly 7: Win x4",
