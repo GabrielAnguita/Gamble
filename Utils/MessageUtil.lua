@@ -9,11 +9,13 @@ local messageUtil = {
 }
 Private.MessageUtil = messageUtil
 
+function messageUtil:SafeSay(message)
+    SendChatMessage(message, "SAY")
+end
+
 local sayWorthy = {
-    ["BET_ACCEPTED"] = true,
     ["CHOICE_PENDING"] = true,
     ["CHOICE_PICKED"] = true,
-    ["GAME_WIN"] = true,
     ["GAME_LOSS"] = true,
     ["WON_PAYOUT"] = true,
     ["PENDING_PAYOUT"] = true,
@@ -25,7 +27,23 @@ local sayWorthy = {
     ["JACKPOT_WIN"] = true,
 }
 
----@param messageType "BET_ACCEPTED"|"CHOICE_PENDING"|"CHOICE_PICKED"|"GAME_WIN"|"GAME_LOSS"|"WON_PAYOUT"|"UNDER_MIN_BET"|"OVER_MAX_BET"|"RULES"|"PERSONAL_STATS"|"NUM_ENTRY"|"NO_FORMAT"|"PENDING_PAYOUT"|"BUSY_WITH_GAME"|"LOYALTY_MIN_BET_NOT_MET"|"RULEJACKPOT"|"JACKPOT_WIN"|"JACKPOT_PROGRESS"
+function messageUtil:SendEmote(messageType, args)
+    local message = const.MESSAGE_TYPES[messageType]
+    if not message then
+        addon:ThrowError("Invalid emote type: " .. tostring(messageType))
+        return
+    end
+    if args and #args > 0 then
+        message = message:format(unpack(args))
+    end
+    if message and message ~= "" then
+        SendChatMessage(message, "EMOTE")
+    else
+        addon:ThrowError("Attempted to send empty emote for type: " .. tostring(messageType))
+    end
+end
+
+---@param messageType "BET_ACCEPTED"|"CHOICE_PENDING"|"CHOICE_PICKED"|"GAME_WIN"|"GAME_LOSS"|"WON_PAYOUT"|"UNDER_MIN_BET"|"OVER_MAX_BET"|"RULES"|"PERSONAL_STATS"|"NUM_ENTRY"|"NO_FORMAT"|"PENDING_PAYOUT"|"BUSY_WITH_GAME"|"LOYALTY_MIN_BET_NOT_MET"|"RULEJACKPOT"|"JACKPOT_WIN"|"JACKPOT_PROGRESS"|"EMOTE_BET_PLACED"|"EMOTE_BET_WIN"
 ---@param args table
 ---@param target string|?
 function messageUtil:SendMessage(messageType, channel, args, target)

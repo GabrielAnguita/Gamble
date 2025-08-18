@@ -3,5 +3,6 @@
 ## Author: YourName
 ## Version: 1.0
 ## Notes: A gambling addon for Mists of Pandaria.
+## SavedVariables: GambleDB
 
 embed.xml

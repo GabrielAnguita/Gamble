@@ -46,6 +46,9 @@ constants.MESSAGE_TYPES = {
     ["LOYALTY_MIN_BET_NOT_MET"] = "The current minimun for a loyalty bonus is %s, bet more if you want a loyalty bonus",
     ["JACKPOT_PROGRESS"] = "{Star} Jackpot progress{Star} %d/%d consecutive wins!",
     ["JACKPOT_WIN"] = "JACKPOT! You've won an additional %s for your %dx win streak!",
+    ["EMOTE_BET_PLACED"] = "%s BETS %s",
+    ["EMOTE_BET_WIN"] = "%s WINS %s",
+    ["EMOTE_BET_COLLECTING"] = "is collecting a bet from %s"
 
 }
 

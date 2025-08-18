@@ -19,7 +19,13 @@ end
 ---@param tradeInfo TradeInfo
 function tradesUtil:SaveTrade(tradeInfo)
     addon:SetDatabaseValue("activeGame", tradeInfo)
+    -- Whisper confirmation
     msg:SendMessage("BET_ACCEPTED", "WHISPER", { C_CurrencyInfo.GetCoinText(tradeInfo.bet) }, tradeInfo.name)
+
+    -- Public announce via emote (no popup echo, no race)
+    C_Timer.After(math.random(100, 200) / 100, function()
+        msg:SendEmote("EMOTE_BET_PLACED", { tradeInfo.name, C_CurrencyInfo.GetCoinText(tradeInfo.bet) })
+    end)
 end
 
 ---@class TradeInfo

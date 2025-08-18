@@ -108,6 +108,10 @@ function gameUtil:SaveGame(guid)
         pendingPayouts[game.guid] = previousPay + game.payout
         addon:SetDatabaseValue("pendingPayout", pendingPayouts)
         msg:SendMessage("WON_PAYOUT", "WHISPER", { C_CurrencyInfo.GetCoinText(game.payout) }, game.name)
+        -- Send emote for collecting bet
+        C_Timer.After(0.3, function()
+            msg:SendEmote("EMOTE_BET_COLLECTING", { game.name })    
+        end)
     elseif game.outcome == "LOSE" and addon:GetDatabaseValue("whisperLose") then
         msg:SendMessage("GAME_LOSS", "WHISPER", { game.rolls[1] + game.rolls[2] }, game.name)
     end
@@ -225,6 +229,10 @@ function gameUtil:ProcessOutcome(guid)
         end
         C_Timer.After(0.2, function()
             msg:SendMessage("GAME_WIN", "WHISPER", { sum }, game.name)
+        end)
+        -- Send EMOTE message for win with random delay
+        C_Timer.After(math.random(100, 200) / 100, function()
+            msg:SendEmote("EMOTE_BET_WIN", { game.name, C_CurrencyInfo.GetCoinText(game.payout) })
         end)
     else
         game.outcome = "LOSE"

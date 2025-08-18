@@ -341,4 +341,26 @@ PerformAntiIdleMovement() {
     }
 }
 
+; Simple keybind timers
+SetTimer(PressJKey, Random(1080000, 1200000))  ; 18-20 minutes
+SetTimer(PressKKey, Random(300000, 600000))  ; 5-10 minutes
+
+PressJKey() {
+    global isActive
+    if (isActive) {
+        Send("{j}")
+        LogState("Pressed 'j' key (enlarging potion)")
+    }
+    ; Set next random interval
+    SetTimer(PressJKey, Random(1080000, 1200000))
+}
+
+PressKKey() {
+    global isActive
+    if (isActive) {
+        Send("{k}")
+        LogState("Pressed 'k' key (dice keybind)")
+    }
+}
+
 #HotIf
